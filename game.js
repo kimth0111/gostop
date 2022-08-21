@@ -191,5 +191,4 @@ function exitRoom({ playerId, roomId }) {
   if (getRoomById(roomId)) getRoomById(roomId).deletePlayer(playerId);
 }
 
-rooms.push(new ROOM({ title: "hi", max: 3, id: 0 }));
 module.exports = { getRooms, createNewRoom, getRoomById, joinRoom, exitRoom };
