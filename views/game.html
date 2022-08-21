@@ -1,0 +1,11 @@
+{% extends 'layout.html' %} {% block content %}
+<fieldset>
+  <form>
+    <input type="text" name="number" />
+  </form>
+  <button>치기</button>
+  <div><canvas id="main-canvas" width="1500" height="900"></canvas></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/src/index.js"></script>
+</fieldset>
+{% endblock %}
