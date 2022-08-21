@@ -1,4 +1,4 @@
-const socket = io.connect("http://localhost:8005/game", {
+const socket = io.connect("https://damp-earth-02842.herokuapp.com/game", {
   path: "/socket.io",
 });
 socket.on("complete", () => {
