@@ -342,6 +342,8 @@ function getDataFromeServer(object) {
 }
 
 function arrangeData(object) {
+  if(!object)
+     return;
   const newMyPlayer = object.myPlayer;
   const newOthers = object.others;
   const newBoard = object.board;
