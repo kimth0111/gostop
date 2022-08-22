@@ -41,6 +41,7 @@ class ROOM {
     return result;
   }
   getToSendData(id) {
+    try{
     const result = { others: [], deck: { CARDS: this.board.deck.CARDS } };
     const ownPlayer = this.getPlayerById(id);
 
@@ -58,6 +59,10 @@ class ROOM {
       title: this.title,
       id: this.id,
     };
+    } catch(err){
+      return false;
+    }
+    
     return result;
   }
   event(data) {
