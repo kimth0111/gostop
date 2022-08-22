@@ -59,10 +59,13 @@ module.exports = (server, app, sessionMiddleware) => {
       socket.emit("sendFirst", toSendData);
     });
     socket.on("event", (data) => {
-      console.log(socket.id, "가 ", data.name, "을 함");
-      data.playerId = socket.id;
-      const isOk = getRoomById(roomId).event(data);
-      if (isOk) console.log("잘됨");
+      try{
+        console.log(socket.id, "가 ", data.name, "을 함");
+        data.playerId = socket.id;
+        getRoomById(roomId).event(data);
+      }catch (err){
+        console.log("error event");
+      }
 
       game.to(roomId).emit("complete");
     });
