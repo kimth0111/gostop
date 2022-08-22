@@ -27,6 +27,8 @@ socket.on("send", (data) => {
 let myPlayer;
 let board;
 function init(data) {
+  if(!data)
+    return;
   console.log(data);
   const newPlayers = [];
   data.others.forEach((other) => {
