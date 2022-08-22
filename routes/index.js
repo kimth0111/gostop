@@ -15,8 +15,10 @@ router.get("/room", (req, res) => {
 
 router.post("/room", (req, res) => {
   const newRoom = createNewRoom(req.body);
+  const { title, max, id } = { ...newRoom };
   const io = req.app.get("io");
-  io.of("/room").emit("newRoom", newRoom);
+  io.of("/room").emit("newRoom", { title, max, id });
+
   res.redirect(`/room/${newRoom.id}`);
 });
 

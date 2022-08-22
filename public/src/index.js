@@ -1,60 +1,18 @@
-const socket = io.connect("https://damp-earth-02842.herokuapp.com/game", {
-  path: "/socket.io",
-});
-socket.on("complete", () => {
-  socket.emit("get", {});
-});
-socket.on("join", (data) => {
-  console.log(data.id + "님이 입장하셨습니다.");
-});
-socket.on("exit", (data) => {
-  console.log(data.id + "님이 퇴장하셨습니다.");
-});
-function start() {
-  socket.emit("startGame");
-}
-socket.on("start", () => {
-  socket.emit("getFirst");
-});
-socket.on("sendFirst", (data) => {
-  console.log("hi");
-  init(data);
-});
-socket.on("send", (data) => {
-  console.log("데이터를 받음");
-  arrangeData(data);
-});
-let myPlayer;
-let board;
-function init(data) {
-  if(!data)
-    return;
-  console.log(data);
-  const newPlayers = [];
-  data.others.forEach((other) => {
-    newPlayers.push(new PLAYER(other.id));
-  });
+const a = "https://damp-earth-02842.herokuapp.com";
+const b = "http://localhost:8005";
 
-  myPlayer = new PLAYER(data.myPlayer.id);
-  newPlayers.push(myPlayer);
+const canvas = document.querySelector("#main-canvas");
+const ctx = canvas.getContext("2d");
+const cardBackImg = new Image();
+cardBackImg.src = "/cardBack.jpg";
+const backgroundImg = new Image();
+backgroundImg.src = "/board.png";
+const cardImg = new Image();
+cardImg.src = "/card.png";
+const imgWidth = cardImg.width;
+const imgHeight = cardImg.height;
 
-  board = new Board({ players: newPlayers, deck: new DECK() });
-  console.log(board);
-  arrangeData(data);
-  // setInterval(draw, 50);
-}
-document.querySelector("form").addEventListener("submit", (el) => {
-  el.preventDefault();
-  if (myPlayer.hands[el.target.number.value])
-    sendEventToServer("changeSelectedCard", {
-      change: { index: el.target.number.value },
-    });
-});
-
-document.querySelector("button").addEventListener("click", () => {
-  sendEventToServer("strike", {});
-});
-
+let cardPostions = [];
 // init();
 class Board {
   constructor({ players, deck }) {
@@ -171,17 +129,53 @@ class DECK {
     return index;
   }
 }
+const socket = io.connect(b + "/game", {
+  path: "/socket.io",
+});
+socket.on("complete", () => {
+  socket.emit("get", {});
+});
+socket.on("join", (data) => {
+  console.log(data.id + "님이 입장하셨습니다.");
+});
+socket.on("exit", (data) => {
+  console.log(data.id + "님이 퇴장하셨습니다.");
+});
+function start() {
+  socket.emit("startGame");
+}
+socket.on("start", () => {
+  socket.emit("getFirst");
+});
+socket.on("sendFirst", (data) => {
+  console.log("hi");
+  init(data);
+});
+socket.on("send", (data) => {
+  console.log("데이터를 받음");
+  arrangeData(data);
+});
+let myPlayer;
+let board;
+window.onload = () => {
+  socket.emit("get", {});
+};
+function init(data) {
+  if (!data) return;
+  console.log(data);
+  const newPlayers = [];
+  data.others.forEach((other) => {
+    newPlayers.push(new PLAYER(other.id));
+  });
 
-const canvas = document.querySelector("#main-canvas");
-const ctx = canvas.getContext("2d");
-const cardBackImg = new Image();
-cardBackImg.src = "/cardBack.jpg";
-const backgroundImg = new Image();
-backgroundImg.src = "/board.png";
-const cardImg = new Image();
-cardImg.src = "/card.png";
-const imgWidth = cardImg.width;
-const imgHeight = cardImg.height;
+  myPlayer = new PLAYER(data.myPlayer.id);
+  newPlayers.push(myPlayer);
+
+  board = new Board({ players: newPlayers, deck: new DECK() });
+  console.log(board);
+  arrangeData(data);
+  // setInterval(draw, 50);
+}
 
 function drawBackground() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -212,8 +206,6 @@ function drawBackground() {
     canvas.height * 0.15
   );
 }
-
-let cardPostions = [];
 
 canvas.addEventListener("click", (e) => {
   const { pointX, pointY } = { pointX: e.offsetX, pointY: e.offsetY };
@@ -339,13 +331,8 @@ function sendEventToServer(name, data) {
   socket.emit("event", data);
 }
 
-function getDataFromeServer(object) {
-  arrangeData(object);
-}
-
 function arrangeData(object) {
-  if(!object)
-     return;
+  if (!object) return;
   const newMyPlayer = object.myPlayer;
   const newOthers = object.others;
   const newBoard = object.board;

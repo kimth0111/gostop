@@ -9,7 +9,8 @@ class Board {
     this.room = room;
     this.currentOrder = 0;
     this.order = [];
-    this.currentProcess = "start";
+    this.currentProcess = "ready";
+    this.PROCESS = ["playing", "ready"];
   }
 
   get players() {
@@ -18,11 +19,16 @@ class Board {
   get playerLength() {
     return this.players.length;
   }
-
+  changeProcess(process) {
+    if (this.PROCESS.includes(process)) {
+      this.currentProcess = process;
+    }
+  }
   start() {
     this.deck.shuffle();
     this.setOrder();
     this.giveCardsAtFirst();
+    this.changeProcess("playing");
   }
   setOrder() {
     //차례 정하기

@@ -19,10 +19,6 @@ module.exports = (server, app, sessionMiddleware) => {
     socket.on("disconnect", () => {
       console.log("클라이언트 접속해제", socket.id);
     });
-    try {
-    } catch (error) {
-      console.log(error);
-    }
   });
 
   game.on("connection", (socket) => {
@@ -47,8 +43,7 @@ module.exports = (server, app, sessionMiddleware) => {
         console.log("game Start!!");
         const toSendData = getRoomById(roomId).getToSendData(socket.id);
         console.log(toSendData);
-        if(toSendData)
-        game.to(roomId).emit("start", {});
+        if (toSendData) game.to(roomId).emit("start", {});
       }
     });
     socket.on("getFirst", () => {
@@ -60,11 +55,11 @@ module.exports = (server, app, sessionMiddleware) => {
       socket.emit("sendFirst", toSendData);
     });
     socket.on("event", (data) => {
-      try{
+      try {
         console.log(socket.id, "가 ", data.name, "을 함");
         data.playerId = socket.id;
         getRoomById(roomId).event(data);
-      }catch (err){
+      } catch (err) {
         console.log("error event");
       }
       game.to(roomId).emit("complete");

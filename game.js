@@ -14,9 +14,11 @@ class ROOM {
   get playerLength() {
     return this.players.length;
   }
+  init() {
+    this.board = new Board({ deck: new Deck(CARDS), room: this });
+  }
   start() {
     if (this.playerLength >= 2) {
-      this.board = new Board({ deck: new Deck(CARDS), room: this });
       this.board.start();
       return true;
     }
@@ -32,6 +34,7 @@ class ROOM {
       if (el.id == id) this.players.splice(index, 1);
     });
     console.log(id, "가 나가서", this.players);
+    if (this.playerLength < 2) this.endGame();
   }
   getPlayerById(id) {
     let result;
@@ -41,30 +44,34 @@ class ROOM {
     return result;
   }
   getToSendData(id) {
-    let result = {}
-    try{
-    result = { others: [], deck: { CARDS: this.board.deck.CARDS } };
-    const ownPlayer = this.getPlayerById(id);
+    const process = this.board.currentProcess;
+    let result = {};
+    try {
+      result = { others: [], deck: { CARDS: this.board.deck.CARDS } };
+      const ownPlayer = this.getPlayerById(id);
 
-    this.players.forEach((player) => {
-      if (player.id != id) {
-        result.others.push(player.getOtherData());
-      } else {
-        result.myPlayer = ownPlayer.getOwnData();
-      }
-    });
+      this.players.forEach((player) => {
+        if (player.id != id) {
+          result.others.push(player.getOtherData());
+        } else {
+          result.myPlayer = ownPlayer.getOwnData();
+        }
+      });
 
-    result.board = this.board.getToSendData();
+      result.board = this.board.getToSendData();
 
-    this.room = {
-      title: this.title,
-      id: this.id,
-    };
-    } catch(err){
+      this.room = {
+        title: this.title,
+        id: this.id,
+      };
+    } catch (err) {
       return false;
     }
-    
+
     return result;
+  }
+  endGame() {
+    this.init();
   }
   event(data) {
     switch (data.name) {
@@ -169,6 +176,7 @@ function createNewRoom(object) {
   });
   rooms.push(newRoom);
   newId++;
+  newRoom.init();
   return newRoom;
 }
 

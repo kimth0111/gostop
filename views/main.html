@@ -25,11 +25,14 @@
 </fieldset>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const socket = io.connect("https://damp-earth-02842.herokuapp.com/room", {
+  const a = "https://damp-earth-02842.herokuapp.com";
+  const b = "http://localhost:8005";
+  const socket = io.connect(b + "/room", {
     path: "/socket.io",
   });
 
   socket.on("newRoom", function (data) {
+    console.log("hi");
     // 새 방 이벤트 시 새 방 생성
     const tr = document.createElement("tr");
     let td = document.createElement("td");
