@@ -47,6 +47,7 @@ module.exports = (server, app, sessionMiddleware) => {
         console.log("game Start!!");
         const toSendData = getRoomById(roomId).getToSendData(socket.id);
         console.log(toSendData);
+        if(toSendData)
         game.to(roomId).emit("start", {});
       }
     });
@@ -66,7 +67,6 @@ module.exports = (server, app, sessionMiddleware) => {
       }catch (err){
         console.log("error event");
       }
-
       game.to(roomId).emit("complete");
     });
     socket.on("disconnect", () => {
