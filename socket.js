@@ -52,9 +52,15 @@ module.exports = (server, app, sessionMiddleware) => {
     });
     socket.on("get", () => {
       const toSendData = getRoomById(roomId).getToSendData(socket.id);
-      socket.emit("sendFirst", toSendData);
+      console.log(toSendData.others);
+      socket.emit("send", toSendData);
     });
     socket.on("event", (data) => {
+      if (
+        !getRoomById(roomId).board ||
+        getRoomById(roomId).board.currentProcess === "ready"
+      )
+        return;
       try {
         console.log(socket.id, "가 ", data.name, "을 함");
         data.playerId = socket.id;

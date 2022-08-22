@@ -1,3 +1,5 @@
+const { getPlayerById } = require("./game");
+
 class Board {
   constructor({ deck, room }) {
     this.deck = deck;
@@ -73,7 +75,7 @@ class Board {
   }
   strike(player) {
     // 플레이어가 패를 내기
-    if (player != this.players[this.currentOrder]) return;
+    if (player.order != this.currentOrder) return;
     if (player.drewCard) {
       console.log("드로우된 카드를 침");
       this.addCardsToNewer(player.drewCard);
@@ -83,12 +85,12 @@ class Board {
       player.selectedCard = null;
       this.changeOrder();
     } else if (player.handsLength == 0) {
-      this.drawByPlayer();
+      this.drawByPlayer(player.id);
     } else if (!player.selectedCard) return;
     else {
       this.addCardsToNewer(player.selectedCard);
       player.deleteHands(player.selectedCard);
-      this.drawByPlayer();
+      this.drawByPlayer(player.id);
     }
   }
 
@@ -125,14 +127,15 @@ class Board {
     });
     // console.log("현재 카드리스트: ", { ...this.cardObject });
   }
-  drawByPlayer() {
-    console.log(this.players[this.currentOrder], "에게 패를 줌");
-    // 카드 뽑기(플레이어)
-    this.players[this.currentOrder].addDrewCard(this.deck.draw());
+  drawByPlayer(playerId) {
+    console.log(this.room.getPlayerById(playerId), "에게 패를 줌");
+    this.room.getPlayerById(playerId).addDrewCard(this.deck.draw());
   }
   givePairedCardToPlayer() {
     // 맞춰진 카드 player한테 주기
-    this.players[this.currentOrder].addPairedCards(this.cardObject.paired);
+    this.room
+      .getPlayerById(this.order[this.currentOrder])
+      .addPairedCards(this.cardObject.paired);
     this.cardObject.paired = [];
     this.cardObject.newer.forEach((card) => {
       this.cardObject.older.push(card);

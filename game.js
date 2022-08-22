@@ -27,13 +27,13 @@ class ROOM {
     if (this.playerLength < this.max) {
       this.players.push(player);
     }
-    console.log(`${player.id}가 들어와서`, this.players);
+    // console.log(`${player.id}가 들어와서`, this.players);
   }
   deletePlayer(id) {
     this.players.forEach((el, index) => {
       if (el.id == id) this.players.splice(index, 1);
     });
-    console.log(id, "가 나가서", this.players);
+    // console.log(id, "가 나가서", this.players);
     if (this.playerLength < 2) this.endGame();
   }
   getPlayerById(id) {
@@ -76,9 +76,10 @@ class ROOM {
   event(data) {
     switch (data.name) {
       case "changeSelectedCard":
-        console.log(data);
+        // console.log(data);
         if (data.change) {
           if (data.change.index != undefined) {
+            console.log(data.playerId + "가 패를 들었습니다");
             this.getPlayerById(data.playerId).changeSelectedCard(
               data.change.index
             );
@@ -139,18 +140,19 @@ class PLAYER {
         return;
       }
     });
-    console.log(this.hands);
+    // console.log(this.hands);
   }
   addCardToHand(card) {
     this.hands.push(card);
   }
   addDrewCard(card) {
+    console.log("패를바바바");
     this.drewCard = card;
     this.selectedCard = card;
-    console.log("패에서 ", card, "뽑음");
+    // console.log("패에서 ", card, "뽑음");
   }
   addPairedCards(cards) {
-    console.log(cards, "받음");
+    // console.log(cards, "받음");
     cards.forEach((card) => {
       this.pairedCard[card.value.replace("1", "").replace("2", "")].push(card);
     });
@@ -168,7 +170,7 @@ function getRooms() {
   return rooms;
 }
 function createNewRoom(object) {
-  console.log(object);
+  // console.log(object);
   const newRoom = new ROOM({
     title: object.title,
     max: object.max,
@@ -198,7 +200,7 @@ function deleteRoomById(id) {
   });
 }
 function joinRoom({ playerId, roomId }) {
-  console.log(getRoomById(roomId));
+  // console.log(getRoomById(roomId));
   if (getRoomById(roomId)) getRoomById(roomId).addPlayer(new PLAYER(playerId));
 }
 function exitRoom({ playerId, roomId }) {

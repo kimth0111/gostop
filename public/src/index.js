@@ -9,8 +9,13 @@ const backgroundImg = new Image();
 backgroundImg.src = "/board.png";
 const cardImg = new Image();
 cardImg.src = "/card.png";
-const imgWidth = cardImg.width;
-const imgHeight = cardImg.height;
+let imgWidth;
+let imgHeight;
+
+cardImg.onload = function () {
+  imgWidth = cardImg.width;
+  imgHeight = cardImg.height;
+};
 
 let cardPostions = [];
 // init();
@@ -31,6 +36,43 @@ class Board {
             y: 76,
           },
           size: 2,
+        },
+        otherPaired: {
+          blood: {
+            position: {
+              x: 17,
+              y: 3,
+            },
+            size: 0.8,
+          },
+          double: {
+            position: {
+              x: 25,
+              y: 3,
+            },
+            size: 0.8,
+          },
+          figure: {
+            position: {
+              x: 13,
+              y: 3,
+            },
+            size: 0.8,
+          },
+          string: {
+            position: {
+              x: 5,
+              y: 3,
+            },
+            size: 0.8,
+          },
+          light: {
+            position: {
+              x: 1,
+              y: 3,
+            },
+            size: 0.8,
+          },
         },
         paired: {
           blood: {
@@ -84,7 +126,7 @@ class Board {
       newer: [],
       paired: [],
     };
-    this.currentOrder = 0;
+    this.currentOrder = -1;
     this.order = []; //순서 영어 찾기
     this.currentProcess;
     this.deck = deck;
@@ -129,7 +171,7 @@ class DECK {
     return index;
   }
 }
-const socket = io.connect(b + "/game", {
+const socket = io.connect(a + "/game", {
   path: "/socket.io",
 });
 socket.on("complete", () => {
@@ -153,14 +195,16 @@ socket.on("sendFirst", (data) => {
 });
 socket.on("send", (data) => {
   console.log("데이터를 받음");
+  console.log("받은 데이터", data);
   arrangeData(data);
 });
 let myPlayer;
 let board;
 window.onload = () => {
-  socket.emit("get", {});
+  socket.emit("getFirst", {});
 };
 function init(data) {
+  console.log("bye", data, board);
   if (!data) return;
   console.log(data);
   const newPlayers = [];
@@ -178,14 +222,35 @@ function init(data) {
 }
 
 function drawBackground() {
+  ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+  //paired
+  ctx.clearRect(
+    30,
+    canvas.height * 0.55,
+    canvas.width - 60,
+    canvas.height * 0.15
+  );
+  //other paired
+  ctx.clearRect(30, 0, canvas.width - 60, canvas.height * 0.15);
+  //myTurn
+  if (board.currentOrder == myPlayer.order) {
+    ctx.fillStyle = "orange";
+    ctx.fillRect(
+      0,
+      canvas.height * 0.7 - 20,
+      canvas.width,
+      canvas.height * 0.3 + 20
+    );
+  }
+  //hands
   ctx.clearRect(
     20,
     canvas.height * 0.7,
     canvas.width - 40,
-    canvas.height * 0.3 - 20
+    canvas.height * 0.3
   );
+  //board
   ctx.clearRect(
     canvas.width * 0.07,
     canvas.height * 0.3,
@@ -198,12 +263,6 @@ function drawBackground() {
     canvas.height * 0.325,
     cardBackImg.width * 0.7,
     cardBackImg.height * 0.7
-  );
-  ctx.clearRect(
-    30,
-    canvas.height * 0.55,
-    canvas.width - 60,
-    canvas.height * 0.15
   );
 }
 
@@ -242,6 +301,7 @@ function drawCard(card, position = { x: 0, y: 0 }, mg = 1, left = 0, type) {
   const startX = ((Number(card.suit) - 1) % 2) * 4 + index;
   const startY = Math.ceil(Number(card.suit) / 2) - 1;
 
+  console.log(imgHeight);
   const positionObj = {
     x: ((position.x * imgWidth) / 8.0) * size - left,
     y: position.y * 0.01 * canvas.height,
@@ -250,7 +310,16 @@ function drawCard(card, position = { x: 0, y: 0 }, mg = 1, left = 0, type) {
   };
   if (type === "hands") cardPostions[cardPostions.length] = { ...positionObj };
   const { x, y, width, height } = { ...positionObj };
-
+  console.log(
+    "toDraw",
+    card,
+    position,
+    size,
+    index,
+    startX,
+    startY,
+    positionObj
+  );
   if (type === "board") {
     console.log("hihi", positionObj, card);
   }
@@ -266,16 +335,14 @@ function drawCard(card, position = { x: 0, y: 0 }, mg = 1, left = 0, type) {
     height
   );
 }
-cardImg.onload = function () {
-  // draw();
-};
+
 function draw() {
   cardPostions = [];
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const { older, newer, paired } = { ...board.cardObject };
   const handCards = myPlayer;
   const deckList = board.deck.cardList;
-
+  console.log("hi", myPlayer);
   drawBackground();
 
   const cardList = [].concat(older, newer, paired);
@@ -315,6 +382,23 @@ function draw() {
       "hands"
     );
   });
+  board.players.forEach((player) => {
+    ["blood", "string", "light", "double", "figure"].forEach((el) => {
+      if (player.id != myPlayer.id)
+        player.pairedCard[el].forEach((card, index) => {
+          drawCard(
+            card,
+            {
+              x: board.cvObject.player.otherPaired[el].position.x + index,
+              y: board.cvObject.player.otherPaired[el].position.y,
+            },
+            board.cvObject.player.otherPaired[el].size,
+            25 * index,
+            "board"
+          );
+        });
+    });
+  });
   if (myPlayer.selectedCard)
     drawCard(
       myPlayer.selectedCard,
@@ -345,6 +429,7 @@ function arrangeData(object) {
     for (let key in el) {
       if (getPlayerById(el.id, board))
         getPlayerById(el.id, board)[key] = el[key];
+      console.log(key, getPlayerById(el.id, board), el, el[key]);
     }
   });
   for (let key in newMyPlayer) {
@@ -352,16 +437,17 @@ function arrangeData(object) {
   }
 
   board.deck.CARDS = newDeck.CARDS;
-
+  console.log("disdjfo");
   draw();
 }
 
 function getPlayerById(id, boardObj) {
+  let result = {};
   boardObj.players.forEach((el) => {
     if (el.id === id) {
-      console.log(el);
-      return el;
+      console.log(el, "hi");
+      result = el;
     }
   });
-  return;
+  return result;
 }

@@ -1,8 +1,15 @@
 {% extends 'layout.html' %} {% block content %}
-<fieldset>
+<game>
   <button onclick="start()">게임 시작하기</button>
-  <div><canvas id="main-canvas" width="1500" height="900"></canvas></div>
+  <div>
+    <canvas
+      id="main-canvas"
+      width="1500"
+      height="900"
+      style="border: 5px solid rgb(29, 44, 62); border-radius: 2%"
+    ></canvas>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/src/index.js"></script>
-</fieldset>
+</game>
 {% endblock %}
