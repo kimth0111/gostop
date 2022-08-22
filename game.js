@@ -41,8 +41,9 @@ class ROOM {
     return result;
   }
   getToSendData(id) {
+    let result = {}
     try{
-    const result = { others: [], deck: { CARDS: this.board.deck.CARDS } };
+    result = { others: [], deck: { CARDS: this.board.deck.CARDS } };
     const ownPlayer = this.getPlayerById(id);
 
     this.players.forEach((player) => {
