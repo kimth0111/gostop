@@ -7,12 +7,13 @@ class Board {
       older: [],
       newer: [],
       paired: [],
+      choosing: [],
     };
     this.room = room;
     this.currentOrder = 0;
     this.order = [];
     this.currentProcess = "ready";
-    this.PROCESS = ["playing", "ready"];
+    this.PROCESS = ["playing", "ready", "choosing"];
   }
 
   get players() {
@@ -47,6 +48,11 @@ class Board {
     }
   }
   changeOrder() {
+    console.log("순서 바뀌었습니다!!!!!!!");
+    if (this.cardObject.choosing.length >= 1) {
+      console.log("순서 ㄴㄴ");
+      return;
+    }
     if (this.playerLength - 1 <= this.currentOrder) {
       this.currentOrder = 0;
       return;
@@ -80,10 +86,15 @@ class Board {
       console.log("드로우된 카드를 침");
       this.addCardsToNewer(player.drewCard);
       player.deleteHands(player.drewCard);
-      this.givePairedCardToPlayer();
       player.drewCard = null;
       player.selectedCard = null;
-      this.changeOrder();
+      if (this.cardObject.choosing.length >= 1) {
+        this.changeProcess("choosing");
+      } else {
+        this.arrangePairedCard();
+        this.givePairedCardToPlayer();
+        this.changeOrder();
+      }
     } else if (player.handsLength == 0) {
       this.drawByPlayer(player.id);
     } else if (!player.selectedCard) return;
@@ -105,30 +116,137 @@ class Board {
   addCardsToNewer(card) {
     //newer에 카드 추가
     this.cardObject.newer.push(card);
-    this.arrangePairedCard();
   }
   addCardsToOlder(cardList) {
     cardList.forEach((card) => {
       this.cardObject.older.push(card);
     });
   }
+  chooseCard(data) {
+    const index = data.choose.index;
+    console.log("hihihi", this.cardObject.choosing, data);
+    this.cardObject.paired = this.cardObject.paired.concat(
+      this.cardObject.choosing[0][0],
+      this.cardObject.choosing[0][index + 1]
+    );
+    const otherIndex = index == 0 ? 1 : 0;
+    this.cardObject.older.push(this.cardObject.choosing[0][otherIndex + 1]);
+    this.cardObject.choosing.splice(0, 1);
+    this.givePairedCardToPlayer();
+  }
   arrangePairedCard() {
-    //맞춰진 카드 정리
-    this.cardObject.older.forEach((card, i) => {
-      this.cardObject.newer.forEach((newCard, j) => {
-        if (card.suit == newCard.suit) {
-          this.cardObject.paired.push(this.cardObject.older[i]);
-          this.cardObject.paired.push(this.cardObject.newer[j]);
+    let result = [];
+    if (
+      this.cardObject.newer.length >= 2 &&
+      this.cardObject.newer[0].suit == this.cardObject.newer[1].suit
+    ) {
+      result.push(this.cardObject.newer[0]);
+      result.push(this.cardObject.newer[1]);
+      for (let i = 0; i < this.cardObject.older.length; i++) {
+        const card = this.cardObject.older[i];
+        if (card.suit == this.cardObject.newer[0].suit) {
+          result.push(card);
           this.cardObject.older.splice(i, 1);
-          this.cardObject.newer.splice(j, 1);
-          return;
+          i--;
         }
-      });
-    });
+      }
+      if (result.length == 2) {
+        //쪽
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      } else if (result.length == 3) {
+        //쌈
+        this.cardObject.older = this.cardObject.older.concat([...result]);
+      } else if (result.length == 4) {
+        //따닥
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      }
+      this.cardObject.newer = [];
+
+      console.log("결과2", result);
+    } else if (this.cardObject.newer.length >= 2) {
+      result.push(this.cardObject.newer[0]);
+      //맞춰진 카드 정리
+      for (let i = 0; i < this.cardObject.older.length; i++) {
+        const card = this.cardObject.older[i];
+        if (card.suit == this.cardObject.newer[0].suit) {
+          result.push(card);
+          this.cardObject.older.splice(i, 1);
+          i--;
+        }
+      }
+
+      if (result.length == 2) {
+        console.log("하나 맞춤");
+        //하나
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      } else if (result.length == 3) {
+        console.log("두개중 골라");
+        //두개
+        this.cardObject.choosing.push(result);
+        this.changeProcess("choosing");
+      } else if (result.length == 4) {
+        //세개
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      } else {
+        this.cardObject.older = this.cardObject.older.concat([...result]);
+      }
+
+      console.log("결과", result);
+      result = [];
+      result.push(this.cardObject.newer[1]);
+      //맞춰진 카드 정리
+      for (let i = 0; i < this.cardObject.older.length; i++) {
+        const card = this.cardObject.older[i];
+        if (card.suit == this.cardObject.newer[1].suit) {
+          result.push(card);
+          this.cardObject.older.splice(i, 1);
+          i--;
+        }
+      }
+      if (result.length == 2) {
+        //쪽
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      } else if (result.length == 3) {
+        //쌈
+        this.cardObject.choosing.push([...result]);
+        this.changeProcess("choosing");
+      } else if (result.length == 4) {
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      } else {
+        this.cardObject.older = this.cardObject.older.concat([...result]);
+      }
+      console.log("결과", result);
+    } else {
+      result.push(this.cardObject.newer[0]);
+      //맞춰진 카드 정리
+      for (let i = 0; i < this.cardObject.older.length; i++) {
+        const card = this.cardObject.older[i];
+        if (card.suit == this.cardObject.newer[0].suit) {
+          result.push(card);
+          this.cardObject.older.splice(i, 1);
+          i--;
+        }
+      }
+      if (result.length == 2) {
+        //쪽
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      } else if (result.length == 3) {
+        //쌈
+        this.cardObject.choosing.push(result);
+        this.changeProcess("choosing");
+      } else if (result.length == 4) {
+        this.cardObject.paired = this.cardObject.paired.concat([...result]);
+      } else {
+        this.cardObject.older = this.cardObject.older.concat([...result]);
+      }
+      result = [];
+    }
+    this.cardObject.newer = [];
+    console.log("현재 카드리스트: ", { ...this.cardObject });
     // console.log("현재 카드리스트: ", { ...this.cardObject });
   }
   drawByPlayer(playerId) {
-    console.log(this.room.getPlayerById(playerId), "에게 패를 줌");
+    // console.log(this.room.getPlayerById(playerId), "에게 패를 줌");
     this.room.getPlayerById(playerId).addDrewCard(this.deck.draw());
   }
   givePairedCardToPlayer() {

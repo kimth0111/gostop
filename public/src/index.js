@@ -12,6 +12,7 @@ cardImg.src = "/card.png";
 let imgWidth;
 let imgHeight;
 
+const choosingPos = [];
 cardImg.onload = function () {
   imgWidth = cardImg.width;
   imgHeight = cardImg.height;
@@ -265,9 +266,64 @@ function drawBackground() {
     cardBackImg.height * 0.7
   );
 }
+function drawChoosing() {
+  if (board.cardObject.choosing.length === 0) return;
+  const cards = [...board.cardObject.choosing[0]];
+  cards.splice(0, 1);
+
+  ctx.fillRect(
+    canvas.width * 0.66,
+    canvas.height * 0.2,
+    canvas.width * 0.3,
+    canvas.height * 0.4
+  );
+  console.log(cards);
+  cards.forEach((card, i) => {
+    let index = 3 - board.deck.getIndex(card);
+    console.log(card);
+    const startX = ((Number(card.suit) - 1) % 2) * 4 + index;
+    const startY = Math.ceil(Number(card.suit) / 2) - 1;
+
+    const positionObj = {
+      x: canvas.width * 0.66 + 60 + i * 200,
+      y: canvas.height * 0.2 + 30,
+      width: imgWidth / 8.0,
+      height: imgHeight / 6,
+    };
+    choosingPos[i] = positionObj;
+    const { x, y, width, height } = { ...positionObj };
+
+    ctx.drawImage(
+      cardImg,
+      (imgWidth / 8.0) * startX,
+      startY * (imgHeight / 6),
+      imgWidth / 8.0,
+      imgHeight / 6,
+      x,
+      y,
+      width,
+      height
+    );
+  });
+}
 
 canvas.addEventListener("click", (e) => {
   const { pointX, pointY } = { pointX: e.offsetX, pointY: e.offsetY };
+
+  if (board.currentProcess === "choosing") {
+    choosingPos.forEach((card, index) => {
+      const { x, y, width, height } = { ...card };
+      if (
+        x <= pointX &&
+        x + width >= pointX &&
+        y <= pointY &&
+        y + height >= pointY
+      ) {
+        sendEventToServer("choose", { choose: { index } });
+      }
+    });
+    return;
+  }
 
   if (pointY <= canvas.height * 0.6) {
     console.log("침!");
@@ -283,7 +339,7 @@ canvas.addEventListener("click", (e) => {
       y <= pointY &&
       y + height >= pointY
     ) {
-      console.log("hihih");
+      console.log("haha sleect!!", myPlayer.hands[index]);
       if (myPlayer.hands[index]) {
         console.log("hihihi", index);
         sendEventToServer("changeSelectedCard", {
@@ -310,16 +366,7 @@ function drawCard(card, position = { x: 0, y: 0 }, mg = 1, left = 0, type) {
   };
   if (type === "hands") cardPostions[cardPostions.length] = { ...positionObj };
   const { x, y, width, height } = { ...positionObj };
-  console.log(
-    "toDraw",
-    card,
-    position,
-    size,
-    index,
-    startX,
-    startY,
-    positionObj
-  );
+
   if (type === "board") {
     console.log("hihi", positionObj, card);
   }
@@ -339,13 +386,12 @@ function drawCard(card, position = { x: 0, y: 0 }, mg = 1, left = 0, type) {
 function draw() {
   cardPostions = [];
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const { older, newer, paired } = { ...board.cardObject };
+  const { older, newer, paired, choosing } = { ...board.cardObject };
   const handCards = myPlayer;
   const deckList = board.deck.cardList;
-  console.log("hi", myPlayer);
   drawBackground();
 
-  const cardList = [].concat(older, newer, paired);
+  const cardList = [].concat(older, newer, paired, choosing);
   cardList.forEach((card, index) => {
     drawCard(
       card,
@@ -408,6 +454,9 @@ function draw() {
       },
       board.cvObject.player.selected.size
     );
+  if (board.currentProcess === "choosing") {
+    drawChoosing();
+  }
 }
 
 function sendEventToServer(name, data) {

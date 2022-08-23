@@ -61,14 +61,29 @@ module.exports = (server, app, sessionMiddleware) => {
         getRoomById(roomId).board.currentProcess === "ready"
       )
         return;
-      try {
-        console.log(socket.id, "가 ", data.name, "을 함");
-        data.playerId = socket.id;
+      if (
+        getRoomById(roomId).board.currentProcess === "choosing" &&
+        data.name === "choose" &&
+        socket.id ===
+          getRoomById(roomId).board.order[
+            getRoomById(roomId).board.currentOrder
+          ]
+      ) {
         getRoomById(roomId).event(data);
-      } catch (err) {
-        console.log("error event");
+
+        game.to(roomId).emit("complete");
+        return;
       }
-      game.to(roomId).emit("complete");
+      if (getRoomById(roomId).board.currentProcess === "playing") {
+        try {
+          console.log(socket.id, "가 ", data.name, "을 함");
+          data.playerId = socket.id;
+          getRoomById(roomId).event(data);
+        } catch (err) {
+          console.log("error event");
+        }
+        game.to(roomId).emit("complete");
+      }
     });
     socket.on("disconnect", () => {
       console.log("클라이언트 접속해제", socket.id);

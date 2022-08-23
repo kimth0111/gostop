@@ -91,6 +91,17 @@ class ROOM {
           this.board.strike(this.getPlayerById(data.playerId));
         else return;
         break;
+      case "choose":
+        if (data.choose) {
+          if (data.choose.index != undefined) {
+            console.log("패를 골랐습니다.");
+            this.board.chooseCard(data);
+            if (this.board.cardObject.choosing.length === 0) {
+              this.board.changeOrder();
+              this.board.changeProcess("playing");
+            }
+          }
+        }
     }
     return true;
   }

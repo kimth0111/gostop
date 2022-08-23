@@ -121,7 +121,7 @@ const CARDS = [
   },
   {
     suit: "8",
-    value: "string",
+    value: "figure",
   },
   {
     suit: "8",
